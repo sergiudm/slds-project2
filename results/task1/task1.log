@@ -1,0 +1,148 @@
+Attempting to load training data from sheet: '2008'
+Training data from sheet '2008' loaded successfully. Shape: (210, 14)
+
+Attempting to load testing data from sheet: '2018'
+Testing data from sheet '2018' loaded successfully. Shape: (209, 14)
+
+--- Engineering New Features ---
+Engineering features for Training data...
+Created 'GDP per capita'.
+Created 'Health expenditure per capita'.
+Created 'R&D expenditure per capita'.
+Engineering features for Testing data...
+Created 'GDP per capita'.
+Created 'Health expenditure per capita'.
+Created 'R&D expenditure per capita'.
+
+Updated FEATURE_COLUMNS: ['Agriculture, forestry, and fishing, value added (% of GDP)', 'Annual freshwater withdrawals, total (% of internal resources)', 'Current health expenditure (% of GDP)', 'Forest area (% of land area)', 'GDP (current US$)', 'Immunization, measles (% of children ages 12-23 months)', 'Income share held by lowest 20%', 'Industry (including construction), value added (% of GDP)', 'Population, total', 'Prevalence of underweight, weight for age (% of children under 5)', 'Research and development expenditure (% of GDP)', 'School enrollment, secondary (% net)', 'GDP per capita', 'Health expenditure per capita', 'R&D expenditure per capita']
+
+Performing data understanding for training data (Year 2008)...
+
+--- a. Data Understanding for Training Data (2008) ---
+Using features: ['Agriculture, forestry, and fishing, value added (% of GDP)', 'Annual freshwater withdrawals, total (% of internal resources)', 'Current health expenditure (% of GDP)', 'Forest area (% of land area)', 'GDP (current US$)', 'Immunization, measles (% of children ages 12-23 months)', 'Income share held by lowest 20%', 'Industry (including construction), value added (% of GDP)', 'Population, total', 'Prevalence of underweight, weight for age (% of children under 5)', 'Research and development expenditure (% of GDP)', 'School enrollment, secondary (% net)', 'GDP per capita', 'Health expenditure per capita', 'R&D expenditure per capita']
+
+1. Correlation Heatmap:
+
+2. Distribution of 'Life expectancy at birth, total (years)':
+count    210.000000
+mean      69.885981
+std        9.023219
+min       43.566000
+25%       63.970000
+50%       72.405500
+75%       76.941207
+max       82.893000
+Name: Life expectancy at birth, total (years), dtype: float64
+
+3. Missing Data Analysis:
+                                                    Missing Values  Percentage (%)
+Prevalence of underweight, weight for age (% of...             184       87.619048
+Income share held by lowest 20%                                136       64.761905
+School enrollment, secondary (% net)                           117       55.714286
+Research and development expenditure (% of GDP)                113       53.809524
+R&D expenditure per capita                                     113       53.809524
+Annual freshwater withdrawals, total (% of inte...              38       18.095238
+Health expenditure per capita                                   28       13.333333
+Current health expenditure (% of GDP)                           27       12.857143
+Immunization, measles (% of children ages 12-23...              22       10.476190
+Industry (including construction), value added ...              18        8.571429
+Agriculture, forestry, and fishing, value added...              17        8.095238
+GDP (current US$)                                                9        4.285714
+GDP per capita                                                   9        4.285714
+Forest area (% of land area)                                     7        3.333333
+
+Note: Median imputation will be used for missing numerical data during preprocessing.
+
+Preprocessing training and testing data (Imputation and Scaling)...
+
+--- Preprocessing Data ---
+Preprocessing complete.
+
+--- Performing Stepwise Forward Selection (SFS) with Linear Regression ---
+Fitting SFS model...
+
+SFS selected 8 features:
+- Agriculture, forestry, and fishing, value added (% of GDP)
+- Immunization, measles (% of children ages 12-23 months)
+- Industry (including construction), value added (% of GDP)
+- Population, total
+- Prevalence of underweight, weight for age (% of children under 5)
+- School enrollment, secondary (% net)
+- GDP per capita
+- Health expenditure per capita
+SFS Best R² score during CV: 0.6258
+Linear Regression model trained with SFS selected features.
+Linear Regression (SFS) - Test MSE: 23.7138, Test R²: 0.5858
+
+--- b. Modeling (on all specified features) ---
+
+Training Linear Regression (All Features)...
+Linear Regression (All Features) trained successfully.
+Linear Regression (All Features) - Test MSE: 23.4454, Test R²: 0.5905
+
+Training Random Forest Regressor...
+Random Forest Regressor trained successfully.
+Random Forest Regressor - Test MSE: 17.7431, Test R²: 0.6901
+
+Training Gradient Boosting Regressor...
+Gradient Boosting Regressor trained successfully.
+Gradient Boosting Regressor - Test MSE: 20.1502, Test R²: 0.6481
+
+Training Support Vector Regressor (SVR)...
+Support Vector Regressor (SVR) trained successfully.
+Support Vector Regressor (SVR) - Test MSE: 24.9440, Test R²: 0.5644
+
+Feature Importances (for models trained on all features):
+
+Random Forest Feature Importances Determination:
+Calculated as the mean decrease in impurity (Gini importance) from splits on each feature.
+
+Gradient Boosting Feature Importances Determination:
+Calculated based on how much each feature contributes to reducing the loss function.
+
+--- Combined Model Performance Summary ---
+Linear Regression (SFS) - Test MSE: 23.7138, Test R²: 0.5858
+Linear Regression (All Features) - Test MSE: 23.4454, Test R²: 0.5905
+Random Forest Regressor - Test MSE: 17.7431, Test R²: 0.6901
+Gradient Boosting Regressor - Test MSE: 20.1502, Test R²: 0.6481
+Support Vector Regressor (SVR) - Test MSE: 24.9440, Test R²: 0.5644
+
+Analyzing predictions for the best model based on R² on Test Set: Random Forest Regressor (R²: 0.6901)
+
+--- c. Analysis of Predictions for Random Forest Regressor (Year 2018) ---
+
+Summary statistics for prediction errors (Random Forest Regressor):
+count    209.000000
+mean       1.952267
+std        3.741493
+min      -12.848123
+25%        0.298395
+50%        2.132296
+75%        3.846032
+max       15.486057
+dtype: float64
+
+Potential Outliers (errors > 2 std dev from mean error) for Random Forest Regressor:
+        Actual  Predicted      Error
+22   77.093000  61.606943  15.486057
+23   65.422000  73.359854  -7.937854
+31   70.561000  60.359656  10.201344
+57   67.067000  74.975475  -7.908475
+108  72.794000  60.425714  12.368286
+113  76.648780  63.212136  13.436645
+120  64.500000  73.213938  -8.713938
+127  76.841463  63.289916  13.551548
+131  62.586000  75.434123 -12.848123
+132  63.234000  69.315471  -6.081471
+168  65.674000  73.644077  -7.970077
+178  59.411000  69.501341 -10.090341
+202  71.979000  59.912106  12.066894
+
+Possible reasons for outliers:
+- Unique national circumstances in 2018 not captured by 2008-trained model.
+- Data quality issues for specific countries/features.
+- Model limitations for these specific cases.
+
+--- End of Analysis ---
+
+Displaying plots. Close plot windows to end script.
