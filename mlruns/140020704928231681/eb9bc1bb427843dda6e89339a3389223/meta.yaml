@@ -1,0 +1,15 @@
+artifact_uri: file:///home/zhaozirui/slds-project2/mlruns/140020704928231681/eb9bc1bb427843dda6e89339a3389223/artifacts
+end_time: 1747549447640
+entry_point_name: ''
+experiment_id: '140020704928231681'
+lifecycle_stage: active
+run_id: eb9bc1bb427843dda6e89339a3389223
+run_name: Qweb-8B-QLoRA-2025-05-18-14-18-27
+run_uuid: eb9bc1bb427843dda6e89339a3389223
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747549108171
+status: 3
+tags: []
+user_id: zhaozirui

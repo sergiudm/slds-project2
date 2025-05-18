@@ -1,0 +1,4 @@
+wandb/
+qwen_sentiment_finetuned/
+__pycache__/
+*.pyc

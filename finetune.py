@@ -1,4 +1,5 @@
 import os
+
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
 from datasets import Dataset, DatasetDict
@@ -15,14 +16,46 @@ from peft import LoraConfig, get_peft_model, TaskType
 from evaluate import load
 import numpy as np
 from comment_classification import load_and_prepare_data
-import wandb
-model_name = "Qwen/Qwen3-30B-A3B"
-model_id = "Qwen/Qwen3-30B-A3B"
+# import wandb
+import mlflow
+import datetime
+
+
+model_name = "Qwen/Qwen3-8B"
+model_id = "Qwen/Qwen3-8B"
 
 tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
-# Set padding token if not already set (Qwen models usually handle this)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
+
+QWEN_PAD_TOKEN_ID = 151643
+# Ensure the tokenizer is configured to use Qwen's specified PAD token
+# which is its BOS token.
+if tokenizer.pad_token_id != QWEN_PAD_TOKEN_ID:
+    print(f"Tokenizer's current pad_token_id is {tokenizer.pad_token_id}.")
+    print(
+        f"Setting tokenizer's pad_token_id to Qwen's specified BOS/PAD token ID: {QWEN_PAD_TOKEN_ID}"
+    )
+    tokenizer.pad_token_id = QWEN_PAD_TOKEN_ID
+
+    # Also set the pad_token string. Since Qwen uses BOS as PAD:
+    if tokenizer.bos_token_id == QWEN_PAD_TOKEN_ID:
+        tokenizer.pad_token = tokenizer.bos_token
+        print(f"Set tokenizer.pad_token to its BOS token: '{tokenizer.bos_token}'")
+    else:
+        # This case should ideally not occur if QWEN_PAD_TOKEN_ID is indeed the bos_token_id
+        # as per the generation_config. Fallback to decode if needed.
+        bos_token_for_pad = tokenizer.decode([QWEN_PAD_TOKEN_ID])
+        tokenizer.pad_token = bos_token_for_pad
+        print(
+            f"Warning: QWEN_PAD_TOKEN_ID ({QWEN_PAD_TOKEN_ID}) does not match tokenizer.bos_token_id ({tokenizer.bos_token_id})."
+        )
+        print(
+            f"Set tokenizer.pad_token by decoding {QWEN_PAD_TOKEN_ID} to: '{tokenizer.pad_token}'"
+        )
+
+# Verify tokenizer settings
+print(
+    f"Using Tokenizer - pad_token: '{tokenizer.pad_token}', pad_token_id: {tokenizer.pad_token_id}, bos_token: '{tokenizer.bos_token}', bos_token_id: {tokenizer.bos_token_id}"
+)
 
 # Load your CSV
 csv_file_path = "douban_movie.csv"
@@ -55,6 +88,12 @@ tokenized_validation_dataset = dataset_dict["validation"].map(
 # Remove original text column as it's no longer needed after tokenization
 tokenized_train_dataset = tokenized_train_dataset.remove_columns(["Comment"])
 tokenized_validation_dataset = tokenized_validation_dataset.remove_columns(["Comment"])
+# Rename the 'Sentiment' column to 'labels' as expected by the model
+tokenized_train_dataset = tokenized_train_dataset.rename_column("Sentiment", "labels")
+tokenized_validation_dataset = tokenized_validation_dataset.rename_column(
+    "Sentiment", "labels"
+)
+
 tokenized_train_dataset.set_format("torch")
 tokenized_validation_dataset.set_format("torch")
 
@@ -78,10 +117,19 @@ model = AutoModelForSequenceClassification.from_pretrained(
     device_map="auto",  # Automatically distributes model layers across available GPUs/CPU
 )
 
-# For Qwen's "thinking mode" - for classification, you likely don't need complex reasoning.
+
+
+# It's also good practice to ensure the model's pad_token_id matches the tokenizer's
+# if it was already set but different (though less common for this specific error).
+if model.config.pad_token_id != tokenizer.pad_token_id:
+    print(
+        f"Warning: model.config.pad_token_id ({model.config.pad_token_id}) "
+        f"differs from tokenizer.pad_token_id ({tokenizer.pad_token_id}). "
+        f"Setting model.config.pad_token_id to match tokenizer."
+    )
+    model.config.pad_token_id = tokenizer.pad_token_id
+
 # If the model has such a config, you might want to ensure it's set appropriately,
-# though for fine-tuning a classification head, this might be less critical than for generation.
-# Check model.config for relevant attributes.
 if hasattr(model.config, "use_cache"):
     model.config.use_cache = False  # Often recommended for training
 if hasattr(model.config, "enable_thinking"):  # Qwen3 specific
@@ -90,15 +138,7 @@ if hasattr(model.config, "enable_thinking"):  # Qwen3 specific
     # model.config.enable_thinking = False # This would be for inference, check if it affects training
     pass  # Consult Qwen docs for fine-tuning regarding this.
 
-
-# It's crucial to identify the target modules for LoRA correctly for your specific Qwen MoE model.
-# Common targets are 'q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'.
-# For MoE models, you might need to be careful about which experts' layers to target,
-# or if there are shared layers. Unsloth handles this well for supported models.
-# If using transformers directly, you may need to inspect the model architecture.
-# A general approach is to target all linear layers in the attention and MLP blocks.
-# `peft` can sometimes infer this, or you might need to list them.
-
+classification_head_name = "score"
 
 lora_target_modules = [
     "q_proj",
@@ -117,23 +157,18 @@ peft_config = LoraConfig(
     lora_alpha=16,  # LoRA alpha
     lora_dropout=0.1,  # LoRA dropout
     target_modules=lora_target_modules,  # Modules to apply LoRA to.
-    # If unsure, you can try omitting this and let PEFT attempt to find suitable layers,
-    # or consult Qwen fine-tuning guides for specific recommendations.
-    # For some models, it might be e.g. ["Wqkv", "out_proj", "w1", "w2"]
-    # Or just ["all-linear"] if supported and desired.
+    modules_to_save=[classification_head_name],
 )
 
-# Ensure the model's classification head is trainable if not already
-for param in model.parameters():
-    if (
-        hasattr(model, "score") and param in model.score.parameters()
-    ):  # 'score' is often the name of the classification head
-        param.requires_grad = True
-    elif (
-        hasattr(model, "classifier") and param in model.classifier.parameters()
-    ):  # Another common name
-        param.requires_grad = True
+if model.config.pad_token_id != tokenizer.pad_token_id:
+    print(f"Model's current config.pad_token_id is {model.config.pad_token_id}.")
+    print(
+        f"Setting model.config.pad_token_id to match tokenizer's pad_token_id: {tokenizer.pad_token_id}"
+    )
+    model.config.pad_token_id = tokenizer.pad_token_id
 
+# Verify model config
+print(f"Model config - pad_token_id: {model.config.pad_token_id}")
 
 # model.gradient_checkpointing_enable() # Can save memory but slows down training
 
@@ -176,6 +211,9 @@ logging_steps = 10
 save_steps = 50  # Save checkpoints periodically
 eval_steps = 50  # Evaluate periodically
 
+mlflow.set_experiment("Qwen3 PEFT")
+date_time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
 training_args = TrainingArguments(
     output_dir=output_dir,
     per_device_train_batch_size=per_device_train_batch_size,
@@ -186,22 +224,23 @@ training_args = TrainingArguments(
     logging_dir=f"{output_dir}/logs",
     logging_strategy="steps",
     logging_steps=logging_steps,
-    evaluation_strategy="steps",
+    eval_strategy="steps",
     eval_steps=eval_steps,
     save_strategy="steps",
     save_steps=save_steps,
     save_total_limit=2,  # Keep only the best and the last checkpoint
     load_best_model_at_end=True,
     metric_for_best_model="accuracy",  # or "f1"
-    report_to="wandb",
+    report_to="mlflow",
+    run_name=f"Qweb-8B-QLoRA-{date_time}",
     fp16=False,  # Set to True if your GPU supports FP16 and you are not using bfloat16 compute_dtype in BnB
     bf16=True
     if torch.cuda.is_bf16_supported()
     and bnb_config.bnb_4bit_compute_dtype == torch.bfloat16
     else False,  # Set to True if using bfloat16
     remove_unused_columns=False,  # Important for PEFT
-    # optim="paged_adamw_8bit" # Can save memory, requires bitsandbytes
-    # optim="adamw_torch_fused" # If available and using PyTorch >= 2.0
+    optim="paged_adamw_8bit",  # Can save memory, requires bitsandbytes
+    label_names=["labels"],
 )
 
 trainer = Trainer(
