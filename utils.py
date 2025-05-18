@@ -21,7 +21,7 @@ def predict_sentiment(text, model, tokenizer):
 def load_and_prepare_data(filepath="douban_movie.csv"):
     """
     Loads the dataset, handles missing values, and creates the target variable.
-    A movie is considered 'loved' (1) if Star >= 4 (original was >=3, changed to 4 for better class separation potentially),
+    A movie is considered 'loved' (1) if Star >= 3,
     otherwise 'not loved' (0).
     """
     try:

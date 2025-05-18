@@ -58,7 +58,7 @@ print(
 )
 
 # Load your CSV
-csv_file_path = "douban_movie.csv"
+csv_file_path = "assets/douban_movie.csv"
 
 df = load_and_prepare_data(csv_file_path)
 

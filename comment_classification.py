@@ -25,7 +25,7 @@ import os
 # --- Configuration ---
 try:
     # The file should be in the same directory as the script, UTF-8 encoded, one stopword per line.
-    with open("stopwords_cn.txt", "r", encoding="utf-8") as f:
+    with open("assets/stopwords_cn.txt", "r", encoding="utf-8") as f:
         loaded_stopwords = [line.strip() for line in f if line.strip()]
     if loaded_stopwords:
         CHINESE_STOPWORDS = set(loaded_stopwords)
@@ -45,7 +45,7 @@ except Exception as e:
 
 
 # --- 1. Load and Prepare Data ---
-def load_and_prepare_data(filepath="douban_movie.csv"):
+def load_and_prepare_data(filepath="assets/douban_movie.csv"):
     """
     Loads the dataset, handles missing values, and creates the target variable.
     A movie is considered 'loved' (1) if Star >= 4 (original was >=3, changed to 4 for better class separation potentially),
