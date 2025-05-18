@@ -117,8 +117,6 @@ model = AutoModelForSequenceClassification.from_pretrained(
     device_map="auto",  # Automatically distributes model layers across available GPUs/CPU
 )
 
-
-
 # It's also good practice to ensure the model's pad_token_id matches the tokenizer's
 # if it was already set but different (though less common for this specific error).
 if model.config.pad_token_id != tokenizer.pad_token_id:
