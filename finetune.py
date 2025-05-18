@@ -15,7 +15,7 @@ import torch
 from peft import LoraConfig, get_peft_model, TaskType
 from evaluate import load
 import numpy as np
-from comment_classification import load_and_prepare_data
+from utils import load_and_prepare_data
 # import wandb
 import mlflow
 import datetime
