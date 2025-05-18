@@ -1,0 +1,165 @@
+Found existing file: 'assets/life_indicator_2008-2018.xlsx'. Will use it.
+Attempting to load data for years: 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+Available sheets in 'assets/life_indicator_2008-2018.xlsx': ['2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018']
+Loading data for year: '2008'
+Data for year '2008' loaded successfully. Shape: (210, 14)
+Loading data for year: '2009'
+Data for year '2009' loaded successfully. Shape: (210, 14)
+Loading data for year: '2010'
+Data for year '2010' loaded successfully. Shape: (210, 14)
+Loading data for year: '2011'
+Data for year '2011' loaded successfully. Shape: (210, 14)
+Loading data for year: '2012'
+Data for year '2012' loaded successfully. Shape: (210, 14)
+Loading data for year: '2013'
+Data for year '2013' loaded successfully. Shape: (210, 14)
+Loading data for year: '2014'
+Data for year '2014' loaded successfully. Shape: (210, 14)
+Loading data for year: '2015'
+Data for year '2015' loaded successfully. Shape: (210, 14)
+Loading data for year: '2016'
+Data for year '2016' loaded successfully. Shape: (210, 14)
+Loading data for year: '2017'
+Data for year '2017' loaded successfully. Shape: (210, 14)
+Loading data for year: '2018'
+Data for year '2018' loaded successfully. Shape: (209, 14)
+
+--- Aggregating Training Data from 2008 to 2017 ---
+Adding data from year 2008 to training set.
+Adding data from year 2009 to training set.
+Adding data from year 2010 to training set.
+Adding data from year 2011 to training set.
+Adding data from year 2012 to training set.
+Adding data from year 2013 to training set.
+Adding data from year 2014 to training set.
+Adding data from year 2015 to training set.
+Adding data from year 2016 to training set.
+Adding data from year 2017 to training set.
+Combined training data shape: (2100, 15)
+Test data (2018) shape: (209, 15)
+
+Performing data understanding for combined training data (2008-2017)...
+
+--- a. Data Understanding for Training Data (2008-2017) ---
+Using features: ['Agriculture, forestry, and fishing, value added (% of GDP)', 'Annual freshwater withdrawals, total (% of internal resources)', 'Current health expenditure (% of GDP)', 'Forest area (% of land area)', 'GDP (current US$)', 'Immunization, measles (% of children ages 12-23 months)', 'Income share held by lowest 20%', 'Industry (including construction), value added (% of GDP)', 'Population, total', 'Prevalence of underweight, weight for age (% of children under 5)', 'Research and development expenditure (% of GDP)', 'School enrollment, secondary (% net)']
+
+1. Correlation Heatmap:
+
+2. Distribution of 'Life expectancy at birth, total (years)':
+count    2100.000000
+mean       71.315252
+std         8.358346
+min        43.566000
+25%        65.398000
+50%        73.074744
+75%        77.755244
+max        84.680488
+Name: Life expectancy at birth, total (years), dtype: float64
+
+3. Missing Data Analysis:
+                                                    Missing Values  Percentage (%)
+Prevalence of underweight, weight for age (% of...            1758       83.714286
+Income share held by lowest 20%                               1300       61.904762
+Research and development expenditure (% of GDP)               1166       55.523810
+School enrollment, secondary (% net)                          1018       48.476190
+Annual freshwater withdrawals, total (% of inte...             348       16.571429
+Current health expenditure (% of GDP)                          267       12.714286
+Immunization, measles (% of children ages 12-23...             213       10.142857
+Agriculture, forestry, and fishing, value added...             144        6.857143
+Industry (including construction), value added ...             132        6.285714
+GDP (current US$)                                               69        3.285714
+Forest area (% of land area)                                    42        2.000000
+
+Note: Median imputation will be used for missing numerical data during preprocessing.
+
+--- Preprocessing Data ---
+Preprocessing complete.
+
+--- Performing Stepwise Forward Selection (SFS) with Linear Regression ---
+Fitting SFS model...
+
+SFS selected 9 features:
+- Agriculture, forestry, and fishing, value added (% of GDP)
+- Annual freshwater withdrawals, total (% of internal resources)
+- Forest area (% of land area)
+- GDP (current US$)
+- Immunization, measles (% of children ages 12-23 months)
+- Income share held by lowest 20%
+- Industry (including construction), value added (% of GDP)
+- Research and development expenditure (% of GDP)
+- School enrollment, secondary (% net)
+SFS Best R² score during CV: 0.6167
+Linear Regression model trained with SFS selected features.
+Linear Regression (SFS) - Test MSE: 23.9793, Test R²: 0.5812
+
+--- b. Modeling (on all specified features) ---
+
+Training Linear Regression (All Features)...
+Linear Regression (All Features) trained successfully.
+Linear Regression (All Features) - Test MSE: 24.0069, Test R²: 0.5807
+
+Training Random Forest Regressor...
+Random Forest Regressor trained successfully.
+Random Forest Regressor - Test MSE: 5.0259, Test R²: 0.9122
+
+Training Gradient Boosting Regressor...
+Gradient Boosting Regressor trained successfully.
+Gradient Boosting Regressor - Test MSE: 10.1853, Test R²: 0.8221
+
+Training Support Vector Regressor (SVR)...
+Support Vector Regressor (SVR) trained successfully.
+Support Vector Regressor (SVR) - Test MSE: 18.2409, Test R²: 0.6814
+
+Feature Importances (for models trained on all features):
+
+Random Forest Feature Importances Determination:
+Calculated as the mean decrease in impurity (Gini importance) from splits on each feature.
+
+Gradient Boosting Feature Importances Determination:
+Calculated based on how much each feature contributes to reducing the loss function.
+
+--- Combined Model Performance Summary ---
+Linear Regression (SFS) - Test MSE: 23.9793, Test R²: 0.5812
+Linear Regression (All Features) - Test MSE: 24.0069, Test R²: 0.5807
+Random Forest Regressor - Test MSE: 5.0259, Test R²: 0.9122
+Gradient Boosting Regressor - Test MSE: 10.1853, Test R²: 0.8221
+Support Vector Regressor (SVR) - Test MSE: 18.2409, Test R²: 0.6814
+
+Analyzing predictions for the best model based on R² on Test Set: Random Forest Regressor (R²: 0.9122)
+
+--- c. Analysis of Predictions for Random Forest Regressor (Year 2018) ---
+
+Summary statistics for prediction errors (Random Forest Regressor):
+count    209.000000
+mean       0.742459
+std        2.120417
+min      -10.341778
+25%        0.071279
+50%        0.650233
+75%        1.389300
+max        9.783122
+dtype: float64
+
+Potential Outliers (errors > 2 std dev from mean error) for Random Forest Regressor:
+       Actual  Predicted      Error
+1    79.18400  73.548734   5.635266
+2    76.06600  70.993457   5.072543
+22   77.09300  69.863650   7.229350
+50   63.03800  69.957738  -6.919738
+76   59.34900  51.638350   7.710650
+106  53.73300  61.829719  -8.096719
+108  72.79400  66.649840   6.144160
+113  76.64878  66.865659   9.783122
+178  59.41100  64.620963  -5.209963
+202  71.97900  63.065130   8.913870
+207  62.34200  67.432083  -5.090083
+208  61.41400  71.755778 -10.341778
+
+Possible reasons for outliers:
+- Unique national circumstances in 2018 not captured by model trained on 2008-2017 data.
+- Data quality issues for specific countries/features in the test year.
+- Model limitations for these specific cases.
+
+--- End of Analysis ---
+
+Displaying plots. Close plot windows to end script.
