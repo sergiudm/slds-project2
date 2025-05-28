@@ -73,14 +73,10 @@ def load_and_prepare_data(filepath="assets/douban_movie.csv"):
     return df[["Comment", "Sentiment"]]
 
 
-# --- 2. Text Preprocessing ---
 def preprocess_text(text):
-    """
-    Cleans and tokenizes Chinese text.
-    """
     if not isinstance(text, str):
         return ""
-    text = re.sub(r"[^\u4e00-\u9fa5]", "", text)  # Keep only Chinese characters
+    text = re.sub(r"[^\u4e00-\u9fa5]", "", text)
     text = text.lower()
     words = jieba.lcut(text)
     words = [word for word in words if word not in CHINESE_STOPWORDS and len(word) > 1]

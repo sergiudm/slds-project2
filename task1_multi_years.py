@@ -923,9 +923,9 @@ def main():
     df_train_full_fe = df_train_full.copy() if df_train_full is not None else None
     df_test_full_fe = df_test_full.copy() if df_test_full is not None else None
 
-    # df_train_full_fe, df_test_full_fe = engineer_features(
-    #     df_train_full_fe, df_test_full_fe
-    # )
+    df_train_full_fe, df_test_full_fe = engineer_features(
+        df_train_full_fe, df_test_full_fe
+    )
 
     # --- Data Understanding (on combined training data) ---
     print(
